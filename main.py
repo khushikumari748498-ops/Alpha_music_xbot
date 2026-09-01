@@ -1,4 +1,5 @@
-from pyrogram import Client, filters
+import asyncio
+from pyrogram import Client, filters, idle
 
 API_ID = 38752587
 API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
@@ -39,4 +40,10 @@ async def resume_command(client, message):
 async def stop_command(client, message):
     await message.reply_text("⏹️ Music band kar diya gaya hai aur VC disconnect ho gaya hai.")
 
-app.run()
+async def main():
+    await app.start()
+    await idle()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+    
