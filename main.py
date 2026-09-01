@@ -1,8 +1,4 @@
-import os
-import asyncio
 from pyrogram import Client, filters
-from pytgcalls import PyTgCalls
-from pytgcalls.types import AudioVideoPiped
 
 API_ID = 38752587
 API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
@@ -15,8 +11,6 @@ app = Client(
     bot_token=BOT_TOKEN
 )
 
-call_py = PyTgCalls(app)
-
 @app.on_message(filters.command("start"))
 async def start_command(client, message):
     await message.reply_text("Hello! I am **ALPHA MUSIC BOT**. Group me add karke kisi bhi command ka use karein.")
@@ -27,7 +21,7 @@ async def play_command(client, message):
         await message.reply_text("Gane ka naam bhi likhein! Example: `/play Tum Hi Ho`")
         return
     song_name = message.text.split(None, 1)[1]
-    await message.reply_text(f"🎵 **Play:** {song_name}")
+    await message.reply_text(f"🎵 **Playing:** {song_name}")
 
 @app.on_message(filters.command(["next", "skip"]))
 async def next_command(client, message):
@@ -45,11 +39,4 @@ async def resume_command(client, message):
 async def stop_command(client, message):
     await message.reply_text("⏹️ Music band kar diya gaya hai aur VC disconnect ho gaya hai.")
 
-async def main():
-    await app.start()
-    await call_py.start()
-    await asyncio.Event().wait()
-
-if __name__ == "__main__":
-    asyncio.run(main())
-
+app.run()
