@@ -3,7 +3,7 @@ import asyncio
 from pyrogram import Client, filters
 
 # Telegram Credentials
-API_ID = 2040 #
+API_ID = 2040 
 API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
 BOT_TOKEN = "8021954744:AAEzgat-16tkP0kFyvfXh3a8I2LiwmAqnF0"
 
