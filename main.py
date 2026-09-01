@@ -1,4 +1,12 @@
+import asyncio
 from pyrogram import Client, filters
+
+# MainThread ke liye event loop manually set karne ke liye:
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
 API_ID = 38752587
 API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
@@ -13,7 +21,7 @@ app = Client(
 
 @app.on_message(filters.command("start"))
 async def start_command(client, message):
-    await message.reply_text("Hello! I am **ALPHA MUSIC BOT**. Group me add karke kisi bhi command ka use karein.")
+    await message.reply_text("Hello! I am **ALPHA MUSIC BOT**. Bot successfully live ho gaya hai!")
 
 @app.on_message(filters.command(["play", "vplay"]))
 async def play_command(client, message):
@@ -25,18 +33,20 @@ async def play_command(client, message):
 
 @app.on_message(filters.command(["next", "skip"]))
 async def next_command(client, message):
-    await message.reply_text("⏭️ **Skipped!** Agla song play ho raha hai.")
+    await message.reply_text(" **Skipped!** Agla song play ho raha hai.")
 
 @app.on_message(filters.command("pause"))
 async def pause_command(client, message):
-    await message.reply_text("⏸️ Music pause ho gaya hai.")
+    await message.reply_text(" Music pause ho gaya hai.")
 
 @app.on_message(filters.command("resume"))
 async def resume_command(client, message):
-    await message.reply_text("▶️ Music dobara start ho gaya hai.")
+    await message.reply_text(" Music dobara start ho gaya hai.")
 
 @app.on_message(filters.command(["stop", "end"]))
 async def stop_command(client, message):
-    await message.reply_text("⏹️ Music band kar diya gaya hai aur VC disconnect ho gaya hai.")
+    await message.reply_text(" Music band kar diya gaya hai aur VC disconnect ho gaya hai.")
 
-app.run()
+if __name__ == "__main__":
+    app.run()
+    
