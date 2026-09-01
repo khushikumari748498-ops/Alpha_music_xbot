@@ -1,12 +1,4 @@
 import asyncio
-
-
-try:
-    loop = asyncio.get_event_loop()
-except RuntimeError:
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
 from pyrogram import Client, filters
 
 API_ID = 38752587
@@ -49,5 +41,7 @@ async def stop_command(client, message):
     await message.reply_text("⏹️ Music band kar diya gaya hai aur VC disconnect ho gaya hai.")
 
 if __name__ == "__main__":
-    app.run()
-    
+    try:
+        app.run()
+    except Exception as e:
+        print(f"Error aaya hai: {e}")
