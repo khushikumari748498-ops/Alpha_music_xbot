@@ -18,12 +18,11 @@ app = Client(
 
 call_py = PyTgCalls(app)
 
-Start Command
+
 @app.on_message(filters.command("start"))
 async def start_command(client, message):
     await message.reply_text("Hello! I am **ALPHA MUSIC BOT**. Group me add karke kisi bhi command ka use karein.")
 
-Play Command (/play & /vplay)
 @app.on_message(filters.command(["play", "vplay"]))
 async def play_command(client, message):
     if len(message.command) < 2:
@@ -32,27 +31,22 @@ async def play_command(client, message):
     song_name = message.text.split(None, 1)[1]
     await message.reply_text(f"🎵 **Playing:** {song_name}")
 
-Next / Skip Command
 @app.on_message(filters.command(["next", "skip"]))
 async def next_command(client, message):
     await message.reply_text("**Skipped!** Agla song play ho raha hai.")
 
- Pause Command
 @app.on_message(filters.command("pause"))
 async def pause_command(client, message):
     await message.reply_text("Music pause ho gaya hai.")
 
- Resume Command
 @app.on_message(filters.command("resume"))
 async def resume_command(client, message):
     await message.reply_text("Music dobara start ho gaya hai.")
 
-Stop / End Command
 @app.on_message(filters.command(["stop", "end"]))
 async def stop_command(client, message):
     await message.reply_text("Music band kar diya gaya hai aur VC disconnect ho gaya hai.")
 
- Bot Runner Logic
 async def main():
     await app.start()
     await call_py.start()
