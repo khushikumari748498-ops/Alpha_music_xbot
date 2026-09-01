@@ -10,8 +10,8 @@ app = Client(
     "Alpha_music_xbot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
-)
+    bot_token=BOT_TOKEN="8821954744:AAEzgat-l6tKP0kFyvfXh3a8I2LLweAqNf0"
+
 
 @app.on_message(filters.command("start"))
 async def start_command(client, message):
@@ -21,9 +21,8 @@ async def start_command(client, message):
 async def play_command(client, message):
     await message.reply_text("🎵 Playing music in Voice Chat...")
 
+
 if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
     app.run()
 
     
