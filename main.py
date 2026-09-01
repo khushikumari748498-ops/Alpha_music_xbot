@@ -1,10 +1,11 @@
 import asyncio
 
-# get_event_loop() ko bilkul bypass karke seedha naya loop set kar rahe hain
+
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 from pyrogram import Client, filters
+
 
 API_ID = 38752587
 API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
@@ -47,4 +48,3 @@ async def stop_command(client, message):
 
 if __name__ == "__main__":
     app.run()
-    
