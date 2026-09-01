@@ -1,4 +1,16 @@
+import sys
+import asyncio
 from pyrogram import Client, filters
+
+# Python ke naye version ke liye event loop ko manually forcefully set kar rahe hain taaki ye error kabhi na aaye
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
 API_ID = 38752587
 API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
@@ -39,5 +51,5 @@ async def resume_command(client, message):
 async def stop_command(client, message):
     await message.reply_text("⏹️ Music band kar diya gaya hai aur VC disconnect ho gaya hai.")
 
-
-app.run()
+if __name__ == "__main__":
+    app.run()
