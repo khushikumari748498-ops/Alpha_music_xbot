@@ -5,13 +5,11 @@ from pyrogram import Client, filters, idle
 from pytgcalls import PyTgCalls
 from pytgcalls.types import AudioPiped, VideoPiped
 
-
-
-API_ID = 35483187
-API_HASH = "e8796df1f7labe6969b846eb8d1b57b1"
-BOT_TOKEN = "8505752014:AAF6oy7WhEjP84KvI7N7Fn4LALCu3KNTi_Q"
-STRING_SESSION = "BQCZzqEANe3pcoUofJaYZA9q75MSLbC3GJGUrXHttQUvS-BGQfF3R-04KLOHfXa3KquEUDC1HPdAHxs-WYl01Zue0Sq0o2yU4csGjb-6ARqkAJ74ABF8H3B-NPM8m-iJcYpcIAXTByZEV1ZeP9Q04qdz9PV27eDlJKMyjIWP4gA5Hd2QM-vqV1uoPmyZP_aYvWgoHXn_tURcOn6Nu14G58RELHfm8dK49ppE6eBIf1euoD5CAOWqNppzcq91avpic9guV7wPJVswwpmoGWUOFdUmCKRiW8LV3gy11BkALBi4xlubSTS8YD1UP1FjuOsdAtdq83NuxtcaNqQfxfX8fW5V_daYAAAAAAFTjovkAA"
-OWNER_ID = 5696818148
+API_ID = int(os.getenv("API_ID", "0"))
+API_HASH = os.getenv("API_HASH")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+STRING_SESSION = os.getenv("STRING_SESSION")
+OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 
 bot = Client(
     "AlphaMusicBot",
