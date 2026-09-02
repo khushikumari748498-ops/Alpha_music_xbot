@@ -10,6 +10,8 @@ from pyrogram import Client, filters
 API_ID = 38752587
 API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
 BOT_TOKEN = "8021954744:AAEzgat-16tkP0kFyvfXh3a8I2LiwmAqnF0"
+OWNER_ID = 8661741940
+LOG_GROUP_ID = 8661741940
 
 app = Client(
     "Alpha_music_xbot",
