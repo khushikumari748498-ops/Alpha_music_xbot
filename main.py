@@ -7,14 +7,14 @@ asyncio.set_event_loop(loop)
 from pyrogram import Client, filters
 
 
-API_ID = 38752587
-API_HASH = "ef9feab27d4e8a99e0bcbeb500aff112"
-BOT_TOKEN = "8021954744:AAEzgat-16tkP0kFyvfXh3a8I2LiwmAqnF0"
-OWNER_ID = 8661741940
-LOG_GROUP_ID = 8661741940
+API_ID = 35483187
+API_HASH = "e8796dff7labe6969b846eb8dlb57b1"
+BOT_TOKEN = "8505752014:AAF6oy7WhEjP84KvI7N7Fn4LALCu3kNTI_Q"
+OWNER_ID = 5696818148
+LOG_GROUP_ID = 5696818148
 
 app = Client(
-    "Alpha_music_xbot",
+    "ALPHAMUSICX4_bot"
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN
