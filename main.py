@@ -3,7 +3,8 @@ import yt_dlp
 
 from pyrogram import Client, filters, idle
 from pytgcalls import PyTgCalls
-from pytgcalls.types import MediaStream
+from pytgcalls.types.input_stream import MediaStream
+
 
 API_ID = 35483187
 API_HASH = "e8796df1f7labe6969b846eb8d1b57b1"
