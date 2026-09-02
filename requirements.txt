@@ -1,5 +1,6 @@
 pyrogram==1.4.16
 py-tgcalls==0.9.7
+yt-dlp
 
 
 
