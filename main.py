@@ -6,11 +6,11 @@ from pytgcalls.types import MediaStream
 from yt_dlp import YoutubeDL
 from pyrogram.types import ChatPermissions
 
-API_ID = int(os.getenv("35483187"))
-API_HASH = os.getenv("e8796df1f71abe6969b845eb8d1b57b1")
-BOT_TOKEN = os.getenv("8505752014: AAF6oy7whEjP84KvI7N7Fn4LALCU3KNT1_0")
-STRING_SESSION = os.getenv("BQCZzqEAUIl3gmPgLzSGMhpjBS1Oon3BEgh67a2uHFuggOBq_t70PLmOV8tXa0pbF_HloYljFcp6d_Z1xVjkcDacRz0j4jwSmJjnEq1XFcKMp2cp2ef187d06NfSrcXHv88htL1fTQq-se42zjufRvFgu16snKzzDD88yMQtRrBCGs6pUbJn5aAgjqmR9ExRnFX2FmL4diHexj48FK3qSk27mfRPR5ak74IZk7qg-aYm_GF8z4AxE_gqjmP-klAANfxFuEHwH8Pk3BoEh1CxOBuYOOTE8zxEXhrUqzmyxVtW7S5pNlN2lFf9SDx0SDD1lcZVBOtfwg37KQxMYQIPZrRQePcNLgAAAAFTjovkAA")
-OWNER_ID = int(os.getenv("5696818148", "0"))
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+STRING_SESSION = os.getenv("STRING_SESSION")
+OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 
 bot = Client(
     "AlphaMusicBot",
