@@ -3,7 +3,8 @@ import yt_dlp
 
 from pyrogram import Client, filters, idle
 from pytgcalls import PyTgCalls
-from pytgcalls.types.input_stream import MediaStream
+from pytgcalls.types import AudioPiped, VideoPiped
+
 
 
 API_ID = 35483187
