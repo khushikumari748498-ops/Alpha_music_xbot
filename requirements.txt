@@ -1,7 +1,8 @@
-Pyrogram==2.0.106
+pyrogram==2.0.107
 tgcrypto
-git+https://github.com/pytgcalls/pytgcalls.git
+pytgcalls
 yt-dlp
+
 
 
 
