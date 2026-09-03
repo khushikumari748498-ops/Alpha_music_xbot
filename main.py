@@ -3,16 +3,20 @@ import asyncio
 import yt_dlp
 
 from pyrogram import Client, filters, idle
-from pyrogram.types import ChatPermissions
 from pytgcalls import PyTgCalls
 from pytgcalls.types import MediaStream
 
 
-API_ID = int(os.getenv("API_ID"))
+# ================= CONFIG =================
+
+API_ID = int(os.getenv("API_ID", "0"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 STRING_SESSION = os.getenv("STRING_SESSION")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
+
+
+# ================= CLIENTS =================
 
 bot = Client(
     "AlphaMusicxBot",
@@ -30,9 +34,14 @@ assistant = Client(
 
 call = PyTgCalls(assistant)
 
+
+# ================= DATA =================
+
 queues = {}
 current = {}
 
+
+# ================= YOUTUBE SEARCH =================
 
 def search_song(query):
     options = {
@@ -48,37 +57,41 @@ def search_song(query):
             download=False
         )
 
-    if not data.get("entries"):
+    if not data or not data.get("entries"):
         return None
 
     video = data["entries"][0]
 
     return {
         "title": video.get("title", "Unknown"),
-        "url": video["url"],
+        "url": video.get("url"),
         "duration": video.get("duration", 0)
     }
 
+
+# ================= PLAY NEXT =================
 
 async def play_next(chat_id):
 
     if chat_id not in queues or not queues[chat_id]:
         current.pop(chat_id, None)
-        return
+        return None
 
     song = queues[chat_id].pop(0)
+
     current[chat_id] = song
 
     await call.play(
         chat_id,
         MediaStream(
-            song["url"],
-            video_flags=MediaStream.Flags.IGNORE
+            song["url"]
         )
     )
 
     return song
 
+
+# ================= START =================
 
 @bot.on_message(filters.command("start"))
 async def start(_, message):
@@ -90,14 +103,13 @@ async def start(_, message):
         "⏸ `/pause`\n"
         "▶️ `/resume`\n"
         "⏭ `/skip`\n"
-        "⏭ `/next`\n"
         "📋 `/queue`\n"
         "⏹ `/stop`\n"
         "🔇 `/mute`\n"
         "🔊 `/unmute`\n"
         "🔊 `/volume 50`\n"
-        "🚫 `/ban @user`\n"
-        "✅ `/unban @user`"
+        "🚫 `/ban` (reply)\n"
+        "✅ `/unban` (reply)"
     )
 
 
@@ -118,18 +130,23 @@ async def play(_, message):
     msg = await message.reply_text("🔎 **Searching...**")
 
     try:
-        song = await asyncio.to_thread(search_song, query)
+        song = await asyncio.to_thread(
+            search_song,
+            query
+        )
 
         if not song:
-            return await msg.edit_text("❌ Song nahi mila.")
+            return await msg.edit_text(
+                "❌ Song nahi mila."
+            )
 
         chat_id = message.chat.id
 
         if chat_id not in queues:
             queues[chat_id] = []
 
-        # Agar already song chal raha hai
         if chat_id in current:
+
             queues[chat_id].append(song)
 
             position = len(queues[chat_id])
@@ -140,14 +157,12 @@ async def play(_, message):
                 f"🔢 Position: {position}"
             )
 
-        # Pehla song
         current[chat_id] = song
 
         await call.play(
             chat_id,
             MediaStream(
-                song["url"],
-                video_flags=MediaStream.Flags.IGNORE
+                song["url"]
             )
         )
 
@@ -169,14 +184,20 @@ async def play(_, message):
 async def pause(_, message):
 
     try:
-        await call.pause(message.chat.id)
+
+        await call.pause(
+            message.chat.id
+        )
 
         await message.reply_text(
             "⏸️ **Music Paused**"
         )
 
     except Exception as e:
-        await message.reply_text(f"❌ `{e}`")
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
 
 
 # ================= RESUME =================
@@ -185,14 +206,20 @@ async def pause(_, message):
 async def resume(_, message):
 
     try:
-        await call.resume(message.chat.id)
+
+        await call.resume(
+            message.chat.id
+        )
 
         await message.reply_text(
             "▶️ **Music Resumed**"
         )
 
     except Exception as e:
-        await message.reply_text(f"❌ `{e}`")
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
 
 
 # ================= SKIP =================
@@ -220,7 +247,8 @@ async def skip(_, message):
             current.pop(chat_id, None)
 
             await message.reply_text(
-                "⏭️ **Skipped**\n\nQueue empty."
+                "⏭️ **Skipped**\n\n"
+                "Queue empty."
             )
 
     except Exception as e:
@@ -240,14 +268,18 @@ async def queue(_, message):
     text = "📋 **ALPHA MUSIC QUEUE**\n\n"
 
     if chat_id in current:
+
         text += (
-            f"🎵 **Playing:**\n"
+            "🎵 **Playing:**\n"
             f"{current[chat_id]['title']}\n\n"
         )
 
     if chat_id in queues and queues[chat_id]:
 
-        for i, song in enumerate(queues[chat_id][:10], 1):
+        for i, song in enumerate(
+            queues[chat_id][:10],
+            1
+        ):
 
             text += (
                 f"{i}. {song['title']}\n"
@@ -292,7 +324,9 @@ async def mute(_, message):
 
     try:
 
-        await call.mute(message.chat.id)
+        await call.mute(
+            message.chat.id
+        )
 
         await message.reply_text(
             "🔇 **Music Muted**"
@@ -312,7 +346,9 @@ async def unmute(_, message):
 
     try:
 
-        await call.unmute(message.chat.id)
+        await call.unmute(
+            message.chat.id
+        )
 
         await message.reply_text(
             "🔊 **Music Unmuted**"
@@ -331,17 +367,21 @@ async def unmute(_, message):
 async def volume(_, message):
 
     if len(message.command) < 2:
+
         return await message.reply_text(
             "Example: `/volume 50`"
         )
 
     try:
 
-        value = int(message.command[1])
+        value = int(
+            message.command[1]
+        )
 
         if value < 0 or value > 200:
+
             return await message.reply_text(
-                "❌ Volume 0 se 200 ke beech rakho."
+                "❌ Volume 0 से 200 के बीच रखो."
             )
 
         await call.change_volume(
@@ -366,8 +406,9 @@ async def volume(_, message):
 async def ban(_, message):
 
     if not message.reply_to_message:
+
         return await message.reply_text(
-            "❌ Jisko ban karna hai uske message par `/ban` reply karo."
+            "❌ User के message पर `/ban` reply करो."
         )
 
     try:
@@ -396,8 +437,9 @@ async def ban(_, message):
 async def unban(_, message):
 
     if not message.reply_to_message:
+
         return await message.reply_text(
-            "❌ User ke message par `/unban` reply karo."
+            "❌ User के message पर `/unban` reply करो."
         )
 
     try:
@@ -420,12 +462,16 @@ async def unban(_, message):
         )
 
 
-# ================= RUN =================
+# ================= MAIN =================
 
 async def main():
 
+    print("🚀 Starting ALPHA MUSIC...")
+
     await assistant.start()
+
     await call.start()
+
     await bot.start()
 
     print("✅ ALPHA MUSIC STARTED")
