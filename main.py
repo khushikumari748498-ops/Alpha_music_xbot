@@ -1,16 +1,21 @@
 import os
 import asyncio
-from pyrogram import Client, filters
+import yt_dlp
+
+from pyrogram import Client, filters, idle
+from pyrogram.types import ChatPermissions
 from pytgcalls import PyTgCalls
 from pytgcalls.types import MediaStream
-from yt_dlp import YoutubeDL
-from pyrogram.types import ChatPermissions
+
+# ================= CONFIG =================
 
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 STRING_SESSION = os.getenv("STRING_SESSION")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
+
+# ================= CLIENT =================
 
 bot = Client(
     "AlphaMusicBot",
@@ -28,167 +33,415 @@ assistant = Client(
 
 call = PyTgCalls(assistant)
 
-current_song = {}
+# ================= QUEUE =================
 
-def get_song(query):
-    ydl_opts = {
+queues = {}
+current = {}
+
+# ================= YOUTUBE SEARCH =================
+
+def search_song(query):
+    options = {
         "format": "bestaudio/best",
         "quiet": True,
+        "no_warnings": True,
         "noplaylist": True,
     }
 
-    with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(f"ytsearch1:{query}", download=False)
+    with yt_dlp.YoutubeDL(options) as ydl:
+        data = ydl.extract_info(
+            f"ytsearch1:{query}",
+            download=False
+        )
 
-    video = info["entries"][0]
+    if not data.get("entries"):
+        return None
+
+    video = data["entries"][0]
 
     return {
-        "title": video["title"],
-        "url": video["url"]
+        "title": video.get("title", "Unknown"),
+        "url": video["url"],
+        "duration": video.get("duration", 0)
     }
+
+
+# ================= PLAY NEXT =================
+
+async def play_next(chat_id):
+
+    if chat_id not in queues or not queues[chat_id]:
+        current.pop(chat_id, None)
+        return
+
+    song = queues[chat_id].pop(0)
+    current[chat_id] = song
+
+    await call.play(
+        chat_id,
+        MediaStream(
+            song["url"],
+            video_flags=MediaStream.Flags.IGNORE
+        )
+    )
+
+    return song
+
+
+# ================= START =================
 
 @bot.on_message(filters.command("start"))
 async def start(_, message):
+
     await message.reply_text(
         "🎵 **ALPHA MUSIC**\n\n"
-        "/play <song name> - Play\n"
-        "/vplay <song name> - Play in voice chat\n"
-        "/pause - Pause\n"
-        "/resume - Resume\n"
-        "/stop - Stop\n"
-        "/mute - Mute voice chat\n"
-        "/unmute - Unmute voice chat\n"
-        "/skip - Skip song\n"
-        "/next - Next song\n"
-        "/ban <user> - Ban a user\n"
-        "/unban <user> - Unban a user"
+        "🎧 `/play song name`\n"
+        "🎤 `/vplay song name`\n"
+        "⏸ `/pause`\n"
+        "▶️ `/resume`\n"
+        "⏭ `/skip`\n"
+        "⏭ `/next`\n"
+        "📋 `/queue`\n"
+        "⏹ `/stop`\n"
+        "🔇 `/mute`\n"
+        "🔊 `/unmute`\n"
+        "🔊 `/volume 50`\n"
+        "🚫 `/ban @user`\n"
+        "✅ `/unban @user`"
     )
 
-@bot.on_message(filters.command("play"))
-async def play(_, message):
-    if len(message.command) < 2:
-        await message.reply_text("❌ Song name लिखो। Example: `/play Tum Hi Ho`")
-        return
-    query = " ".join(message.command[1:])
-    song = get_song(query)
-    await message.reply_text(f"🎧 Playing: {song['title']} (लेकिन यह सिर्फ text feedback है, Voice Chat के लिए vplay यूज़ करें)")
 
-@bot.on_message(filters.command("vplay"))
-async def vplay(_, message):
+# ================= PLAY =================
+
+@bot.on_message(filters.command(["play", "vplay"]))
+async def play(_, message):
+
     if len(message.command) < 2:
-        await message.reply_text("❌ Song name लिखो। Example: `/vplay Tum Hi Ho`")
-        return
+        return await message.reply_text(
+            "❌ Song name likho.\n\n"
+            "Example:\n"
+            "`/play Tum Hi Ho`"
+        )
+
     query = " ".join(message.command[1:])
-    msg = await message.reply_text("🔎 Song खोज रहा हूँ...")
+
+    msg = await message.reply_text("🔎 **Searching...**")
+
     try:
-        song = await asyncio.to_thread(get_song, query)
+        song = await asyncio.to_thread(search_song, query)
+
+        if not song:
+            return await msg.edit_text("❌ Song nahi mila.")
+
+        chat_id = message.chat.id
+
+        if chat_id not in queues:
+            queues[chat_id] = []
+
+        # Agar already song chal raha hai
+        if chat_id in current:
+            queues[chat_id].append(song)
+
+            position = len(queues[chat_id])
+
+            return await msg.edit_text(
+                f"📋 **Added to Queue**\n\n"
+                f"🎵 {song['title']}\n"
+                f"🔢 Position: {position}"
+            )
+
+        # Pehla song
+        current[chat_id] = song
+
         await call.play(
-            message.chat.id,
+            chat_id,
             MediaStream(
                 song["url"],
                 video_flags=MediaStream.Flags.IGNORE
             )
         )
-        current_song[message.chat.id] = song
-        await msg.edit_text(f"🎵 Playing: {song['title']}")
+
+        await msg.edit_text(
+            f"🎵 **Now Playing**\n\n"
+            f"🎶 {song['title']}"
+        )
+
     except Exception as e:
-        await msg.edit_text(f"❌ Error: `{e}`")
+
+        await msg.edit_text(
+            f"❌ **Error:**\n`{e}`"
+        )
+
+
+# ================= PAUSE =================
 
 @bot.on_message(filters.command("pause"))
 async def pause(_, message):
+
     try:
         await call.pause(message.chat.id)
-        await message.reply_text("⏸️ Music paused.")
+
+        await message.reply_text(
+            "⏸️ **Music Paused**"
+        )
+
     except Exception as e:
-        await message.reply_text(f"❌ Pause error: {e}")
+        await message.reply_text(f"❌ `{e}`")
+
+
+# ================= RESUME =================
 
 @bot.on_message(filters.command("resume"))
 async def resume(_, message):
+
     try:
         await call.resume(message.chat.id)
-        await message.reply_text("▶️ Music resumed.")
+
+        await message.reply_text(
+            "▶️ **Music Resumed**"
+        )
+
     except Exception as e:
-        await message.reply_text(f"❌ Resume error: {e}")
+        await message.reply_text(f"❌ `{e}`")
+
+
+# ================= SKIP =================
+
+@bot.on_message(filters.command(["skip", "next"]))
+async def skip(_, message):
+
+    chat_id = message.chat.id
+
+    try:
+
+        await call.leave_call(chat_id)
+
+        if chat_id in queues and queues[chat_id]:
+
+            song = await play_next(chat_id)
+
+            await message.reply_text(
+                f"⏭️ **Skipped**\n\n"
+                f"🎵 Next: {song['title']}"
+            )
+
+        else:
+
+            current.pop(chat_id, None)
+
+            await message.reply_text(
+                "⏭️ **Skipped**\n\nQueue empty."
+            )
+
+    except Exception as e:
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
+
+
+# ================= QUEUE =================
+
+@bot.on_message(filters.command("queue"))
+async def queue(_, message):
+
+    chat_id = message.chat.id
+
+    text = "📋 **ALPHA MUSIC QUEUE**\n\n"
+
+    if chat_id in current:
+        text += (
+            f"🎵 **Playing:**\n"
+            f"{current[chat_id]['title']}\n\n"
+        )
+
+    if chat_id in queues and queues[chat_id]:
+
+        for i, song in enumerate(queues[chat_id][:10], 1):
+
+            text += (
+                f"{i}. {song['title']}\n"
+            )
+
+    else:
+
+        text += "📭 Queue empty."
+
+    await message.reply_text(text)
+
+
+# ================= STOP =================
 
 @bot.on_message(filters.command("stop"))
 async def stop(_, message):
+
+    chat_id = message.chat.id
+
     try:
-        await call.leave_call(message.chat.id)
-        current_song.pop(message.chat.id, None)
-        await message.reply_text("⏹️ Music stopped.")
+
+        await call.leave_call(chat_id)
+
+        queues.pop(chat_id, None)
+        current.pop(chat_id, None)
+
+        await message.reply_text(
+            "⏹️ **Music Stopped**"
+        )
+
     except Exception as e:
-        await message.reply_text(f"❌ Stop error: {e}")
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
+
+
+# ================= MUTE =================
 
 @bot.on_message(filters.command("mute"))
 async def mute(_, message):
+
     try:
+
         await call.mute(message.chat.id)
-        await message.reply_text("🔇 Voice chat muted.")
+
+        await message.reply_text(
+            "🔇 **Music Muted**"
+        )
+
     except Exception as e:
-        await message.reply_text(f"❌ Mute error: {e}")
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
+
+
+# ================= UNMUTE =================
 
 @bot.on_message(filters.command("unmute"))
 async def unmute(_, message):
+
     try:
+
         await call.unmute(message.chat.id)
-        await message.reply_text("🔊 Voice chat unmuted.")
-    except Exception as e:
-        await message.reply_text(f"❌ Unmute error: {e}")
 
-@bot.on_message(filters.command("skip"))
-async def skip(_, message):
-    # Skip logic depends on your playlist logic, here we just stop and play next.
+        await message.reply_text(
+            "🔊 **Music Unmuted**"
+        )
+
+    except Exception as e:
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
+
+
+# ================= VOLUME =================
+
+@bot.on_message(filters.command("volume"))
+async def volume(_, message):
+
+    if len(message.command) < 2:
+        return await message.reply_text(
+            "Example: `/volume 50`"
+        )
+
     try:
-        await call.leave_call(message.chat.id)
-        await message.reply_text("⏭️ Song skipped. Play next song using /vplay <song name>.")
-    except Exception as e:
-        await message.reply_text(f"❌ Skip error: {e}")
 
-@bot.on_message(filters.command("next"))
-async def next_song(_, message):
-    if message.chat.id in current_song:
-        await message.reply_text(f"⏭️ Next song: अभी कोई नया गाना प्ले करने के लिए /vplay <song name> इस्तेमाल करें.")
-    else:
-        await message.reply_text("❌ कोई गाना अभी प्ले नहीं है। /vplay <song name> से शुरू करें।")
+        value = int(message.command[1])
+
+        if value < 0 or value > 200:
+            return await message.reply_text(
+                "❌ Volume 0 se 200 ke beech rakho."
+            )
+
+        await call.change_volume(
+            message.chat.id,
+            value
+        )
+
+        await message.reply_text(
+            f"🔊 **Volume:** {value}%"
+        )
+
+    except Exception as e:
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
+
+
+# ================= BAN =================
 
 @bot.on_message(filters.command("ban"))
-async def ban_user(_, message):
-    if len(message.command) < 2:
-        return await message.reply_text("❌ उपयोगकर्ता का यूज़रनेम या ID बताएं। Example: `/ban @username`")
+async def ban(_, message):
 
-    if message.from_user.id != OWNER_ID:
-        return await message.reply_text("❌ केवल मालिक इस कमांड का इस्तेमाल कर सकता है।")
+    if not message.reply_to_message:
+        return await message.reply_text(
+            "❌ Jisko ban karna hai uske message par `/ban` reply karo."
+        )
 
-    user = message.command[1]
     try:
-        await bot.kick_chat_member(message.chat.id, user)
-        await message.reply_text(f"🚫 {user} को बैन कर दिया गया।")
+
+        user = message.reply_to_message.from_user
+
+        await bot.ban_chat_member(
+            message.chat.id,
+            user.id
+        )
+
+        await message.reply_text(
+            f"🚫 **Banned:** {user.mention}"
+        )
+
     except Exception as e:
-        await message.reply_text(f"❌ बैन में त्रुटि: {e}")
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
+
+
+# ================= UNBAN =================
 
 @bot.on_message(filters.command("unban"))
-async def unban_user(_, message):
-    if len(message.command) < 2:
-        return await message.reply_text("❌ उपयोगकर्ता का यूज़रनेम या ID बताएं। Example: `/unban @username`")
+async def unban(_, message):
 
-    if message.from_user.id != OWNER_ID:
-        return await message.reply_text("❌ केवल मालिक इस कमांड का इस्तेमाल कर सकता है।")
+    if not message.reply_to_message:
+        return await message.reply_text(
+            "❌ User ke message par `/unban` reply karo."
+        )
 
-    user = message.command[1]
     try:
-        await bot.unban_chat_member(message.chat.id, user)
-        await message.reply_text(f"✅ {user} को अनबैन कर दिया गया।")
+
+        user = message.reply_to_message.from_user
+
+        await bot.unban_chat_member(
+            message.chat.id,
+            user.id
+        )
+
+        await message.reply_text(
+            f"✅ **Unbanned:** {user.mention}"
+        )
+
     except Exception as e:
-        await message.reply_text(f"❌ अनबैन में त्रुटि: {e}")
+
+        await message.reply_text(
+            f"❌ `{e}`"
+        )
+
+
+# ================= RUN =================
 
 async def main():
+
     await assistant.start()
     await call.start()
     await bot.start()
 
-    print("✅ ALPHA MUSIC BOT STARTED")
+    print("✅ ALPHA MUSIC STARTED")
 
-    await asyncio.Event().wait()
+    await idle()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
