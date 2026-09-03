@@ -1,5 +1,8 @@
-py-tgcalls
+pyrogram==2.0.106
+tgcrypto
+pytgcalls==1.1.1
 yt-dlp
+
 
 
 
