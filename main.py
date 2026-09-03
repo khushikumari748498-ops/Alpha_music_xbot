@@ -5,17 +5,12 @@ import yt_dlp
 from pyrogram import Client, filters, idle
 from pyrogram.types import ChatPermissions
 from pytgcalls import PyTgCalls
-from pytgcalls.types import MediaStream
-
-# ================= CONFIG =================
 
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 STRING_SESSION = os.getenv("STRING_SESSION")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
-
-# ================= CLIENT =================
 
 bot = Client(
     "AlphaMusicBot",
@@ -33,12 +28,9 @@ assistant = Client(
 
 call = PyTgCalls(assistant)
 
-# ================= QUEUE =================
-
 queues = {}
 current = {}
 
-# ================= YOUTUBE SEARCH =================
 
 def search_song(query):
     options = {
@@ -66,8 +58,6 @@ def search_song(query):
     }
 
 
-# ================= PLAY NEXT =================
-
 async def play_next(chat_id):
 
     if chat_id not in queues or not queues[chat_id]:
@@ -87,8 +77,6 @@ async def play_next(chat_id):
 
     return song
 
-
-# ================= START =================
 
 @bot.on_message(filters.command("start"))
 async def start(_, message):
