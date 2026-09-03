@@ -1,9 +1,7 @@
-pyrogram
+pyrogram==2.0.106
 tgcrypto
-py-tgcalls
+pytgcalls
 yt-dlp
-aiofiles
-asyncio
 
 
 
