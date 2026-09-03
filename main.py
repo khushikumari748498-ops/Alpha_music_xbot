@@ -5,6 +5,7 @@ import yt_dlp
 from pyrogram import Client, filters, idle
 from pyrogram.types import ChatPermissions
 from pytgcalls import PyTgCalls
+from pytgcalls.types import MediaStream
 
 
 API_ID = int(os.getenv("API_ID"))
