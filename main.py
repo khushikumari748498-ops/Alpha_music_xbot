@@ -5,7 +5,8 @@ import yt_dlp
 from pyrogram import Client, filters, idle
 from pyrogram.types import ChatPermissions
 from pytgcalls import PyTgCalls
-from pytgcalls.types import MediaStream
+from pytgcalls.types.input_stream import InputAudioStream
+from pytgcalls.types.input_stream import MediaStream
 
 
 API_ID = int(os.getenv("API_ID"))
@@ -15,7 +16,7 @@ STRING_SESSION = os.getenv("STRING_SESSION")
 OWNER_ID = int(os.getenv("OWNER_ID", "0"))
 
 bot = Client(
-    "AlphaMusicBot",
+    "AlphaMusicxBot",
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN
